@@ -1127,8 +1127,8 @@ bool EditLoadFile(LPWSTR pszFile, EditFileIOStatus &status) noexcept {
 			_swab(lpDataUTF8, lpDataUTF8, cbData);
 		}
 		// cbData/2 => WCHAR, WCHAR*3 => UTF-8
-		lpDataUTF8 = static_cast<char *>(NP2HeapAlloc((cbData + 1)*sizeof(WCHAR)));
-		const int size = static_cast<int>(NP2HeapSize(lpDataUTF8));
+		const DWORD size = (cbData + 1)*sizeof(WCHAR);
+		lpDataUTF8 = static_cast<char *>(NP2HeapAlloc(size));
 		cbData = WideCharToMultiByte(CP_UTF8, 0, pszTextW, cchTextW, lpDataUTF8, size, nullptr, nullptr);
 		if (cbData == 0) {
 			const UINT legacyACP = mEncoding[CPI_DEFAULT].uCodePage;
@@ -1274,8 +1274,9 @@ bool EditSaveFile(HWND hwnd, LPCWSTR pszFile, int saveFlag, EditFileIOStatus &st
 		if (uFlags & (NCP_UTF8 | NCP_DEFAULT)) {
 			// no encoding conversion for UTF-8 or ANSI
 		} else if (uFlags & NCP_UNICODE) {
-			LPWSTR lpDataWide = static_cast<LPWSTR>(NP2HeapAlloc(cbData * sizeof(WCHAR) + 16));
-			const int cbDataWide = MultiByteToWideChar(CP_UTF8, 0, lpData, cbData, lpDataWide, static_cast<int>(NP2HeapSize(lpDataWide) / sizeof(WCHAR)));
+			DWORD cbDataWide = (cbData + 1)*sizeof(WCHAR);
+			LPWSTR lpDataWide = static_cast<LPWSTR>(NP2HeapAlloc(cbDataWide));
+			cbDataWide = MultiByteToWideChar(CP_UTF8, 0, lpData, cbData, lpDataWide, cbData);
 			NP2HeapFree(lpData);
 			lpData = reinterpret_cast<char *>(lpDataWide);
 			cbData = cbDataWide * sizeof(WCHAR);
@@ -1286,20 +1287,21 @@ bool EditSaveFile(HWND hwnd, LPCWSTR pszFile, int saveFlag, EditFileIOStatus &st
 		} else { // NCP_8BIT, NCP_7BIT
 			BOOL bCancelDataLoss = FALSE;
 			const UINT uCodePage = mEncoding[iEncoding].uCodePage;
-
-			LPWSTR lpDataWide = static_cast<LPWSTR>(NP2HeapAlloc(cbData * sizeof(WCHAR) + 16));
-			const int cbDataWide = MultiByteToWideChar(CP_UTF8, 0, lpData, cbData, lpDataWide, static_cast<int>(NP2HeapSize(lpDataWide) / sizeof(WCHAR)));
+			DWORD cbDataWide = (cbData + 1)*sizeof(WCHAR);
+			LPWSTR lpDataWide = static_cast<LPWSTR>(NP2HeapAlloc(cbDataWide));
+			cbDataWide = MultiByteToWideChar(CP_UTF8, 0, lpData, cbData, lpDataWide, cbData);
 
 			if (IsZeroFlagsCodePage(uCodePage)) {
 				NP2HeapFree(lpData);
-				lpData = static_cast<char *>(NP2HeapAlloc(NP2HeapSize(lpDataWide) * 2));
+				cbData = ((cbData + 16)*sizeof(WCHAR))*2; // why?
+				lpData = static_cast<char *>(NP2HeapAlloc(cbData + 1));
 			} else {
-				memset(lpData, 0, NP2HeapSize(lpData));
-				cbData = WideCharToMultiByte(uCodePage, WC_NO_BEST_FIT_CHARS, lpDataWide, cbDataWide, lpData, static_cast<int>(NP2HeapSize(lpData)), nullptr, &bCancelDataLoss);
+				memset(lpData, 0, cbData);
+				cbData = WideCharToMultiByte(uCodePage, WC_NO_BEST_FIT_CHARS, lpDataWide, cbDataWide, lpData, cbData, nullptr, &bCancelDataLoss);
 			}
 
 			if (!bCancelDataLoss) {
-				cbData = WideCharToMultiByte(uCodePage, 0, lpDataWide, cbDataWide, lpData, static_cast<int>(NP2HeapSize(lpData)), nullptr, nullptr);
+				cbData = WideCharToMultiByte(uCodePage, 0, lpDataWide, cbDataWide, lpData, cbData, nullptr, nullptr);
 			}
 			NP2HeapFree(lpDataWide);
 

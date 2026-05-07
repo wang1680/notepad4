@@ -6133,34 +6133,33 @@ CommandParseState ParseCommandLineOption(LPWSTR lp1, LPWSTR lp2) noexcept {
 
 void ParseCommandLine() noexcept {
 	LPWSTR lpCmdLine = GetCommandLine();
-	const size_t cmdSize = sizeof(WCHAR) * (lstrlen(lpCmdLine) + 1);
-
-	if (cmdSize == sizeof(WCHAR)) {
+	size_t cmdSize = lstrlen(lpCmdLine);
+	if (cmdSize == 0) {
 		return;
 	}
 
 #if 0
 	FILE *fp = fopen("args-dump.txt", "wb");
 	fwrite("\xFF\xFE", 1, 2, fp);
-	fwrite(lpCmdLine, 1, cmdSize - sizeof(WCHAR), fp);
+	fwrite(lpCmdLine, 1, cmdSize * sizeof(WCHAR), fp);
 	fclose(fp);
 #endif
 
 	// Good old console can also send args separated by Tabs
 	StrTab2Space(lpCmdLine);
 
-	LPWSTR lp1 = static_cast<LPWSTR>(NP2HeapAlloc(cmdSize));
-	LPWSTR lp3 = static_cast<LPWSTR>(NP2HeapAlloc(cmdSize));
+	cmdSize = NP2_align_up(cmdSize + 1, MEMORY_ALLOCATION_ALIGNMENT);
+	WCHAR * const lp1 = static_cast<LPWSTR>(NP2HeapAlloc(cmdSize * sizeof(WCHAR) * 4));
+	WCHAR * const lp2 = lp1 + cmdSize;
+	WCHAR * const lp3 = lp2 + cmdSize;
 
 	// Start with 2nd argument
 	if (!(ExtractFirstArgument(lpCmdLine, lp1, lp3) && *lp3)) {
 		NP2HeapFree(lp1);
-		NP2HeapFree(lp3);
 		return;
 	}
 
 	bool bIsFileArg = false;
-	LPWSTR lp2 = static_cast<LPWSTR>(NP2HeapAlloc(cmdSize));
 	while (ExtractFirstArgument(lp3, lp1, lp2)) {
 		// options
 		if (!bIsFileArg) {
@@ -6194,8 +6193,6 @@ void ParseCommandLine() noexcept {
 
 		// pathname
 		{
-			LPWSTR lpFileBuf = static_cast<LPWSTR>(NP2HeapAlloc(cmdSize));
-
 			if (lpFileArg) {
 				NP2HeapFree(lpFileArg);
 			}
@@ -6221,6 +6218,7 @@ void ParseCommandLine() noexcept {
 
 			if (flagMultiFileArg == TripleBoolean_True) {
 				cchiFileList = lstrlen(lpCmdLine) - lstrlen(lp3);
+				LPWSTR lpFileBuf = lp3 + cmdSize;
 
 				while (cFileList < 32 && ExtractFirstArgument(lp3, lpFileBuf, lp3)) {
 					PathQuoteSpaces(lpFileBuf);
@@ -6228,14 +6226,11 @@ void ParseCommandLine() noexcept {
 				}
 			}
 
-			NP2HeapFree(lpFileBuf);
 			break;
 		}
 	}
 
-	NP2HeapFree(lp2);
 	NP2HeapFree(lp1);
-	NP2HeapFree(lp3);
 }
 
 //=============================================================================
@@ -7528,7 +7523,6 @@ bool RelaunchMultiInst() noexcept {
 		LPWSTR lpCmdLineNew = StrDup(GetCommandLine());
 		const size_t cmdSize = sizeof(WCHAR) * (lstrlen(lpCmdLineNew) + 1);
 		LPWSTR lp1 = static_cast<LPWSTR>(NP2HeapAlloc(cmdSize));
-		LPWSTR lp2 = static_cast<LPWSTR>(NP2HeapAlloc(cmdSize));
 
 		StrTab2Space(lpCmdLineNew);
 		StrCpyEx(lpCmdLineNew + cchiFileList, L"");
@@ -7562,7 +7556,6 @@ bool RelaunchMultiInst() noexcept {
 
 		LocalFree(lpCmdLineNew);
 		NP2HeapFree(lp1);
-		NP2HeapFree(lp2);
 		NP2HeapFree(lpFileArg);
 
 		return true;
@@ -7720,16 +7713,18 @@ bool RelaunchElevated() noexcept {
 			}
 
 			exit = PathEqual(tchFile, szCurFile);
-			lpArg1 = static_cast<LPWSTR>(NP2HeapAlloc(sizeof(WCHAR) * MAX_PATH));
+			constexpr size_t cmdSize = NP2_align_up(MAX_PATH, MEMORY_ALLOCATION_ALIGNMENT);
+			lpArg1 = static_cast<LPWSTR>(NP2HeapAlloc(sizeof(WCHAR) * (cmdSize + 1024)));
+			lpArg2 = lpArg1 + cmdSize;
 			GetModuleFileName(nullptr, lpArg1, MAX_PATH);
-			lpArg2 = static_cast<LPWSTR>(NP2HeapAlloc(sizeof(WCHAR) * 1024));
 			GetRelaunchParameters(lpArg2, tchFile, !exit, false);
 			exit = !IsDocumentModified();
 		} else {
 			const LPCWSTR lpCmdLine = GetCommandLine();
-			const size_t cmdSize = sizeof(WCHAR) * (lstrlen(lpCmdLine) + 1);
-			lpArg1 = static_cast<LPWSTR>(NP2HeapAlloc(cmdSize));
-			lpArg2 = static_cast<LPWSTR>(NP2HeapAlloc(cmdSize));
+			size_t cmdSize = lstrlen(lpCmdLine);
+			cmdSize = NP2_align_up(cmdSize + 1, MEMORY_ALLOCATION_ALIGNMENT);
+			lpArg1 = static_cast<LPWSTR>(NP2HeapAlloc(cmdSize * sizeof(WCHAR) * 2));
+			lpArg2 = lpArg1 + cmdSize;
 			ExtractFirstArgument(lpCmdLine, lpArg1, lpArg2);
 		}
 
@@ -7753,7 +7748,6 @@ bool RelaunchElevated() noexcept {
 		}
 
 		NP2HeapFree(lpArg1);
-		NP2HeapFree(lpArg2);
 		return exit;
 	}
 }

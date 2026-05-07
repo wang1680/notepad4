@@ -29,6 +29,7 @@
 #include <cstdio>
 #include "config.h"
 #include "Helpers.h"
+#include "../../scintilla/include/VectorISA.h"
 #include "Dlapi.h"
 #include "Dialogs.h"
 #include "matepath.h"
@@ -2895,33 +2896,32 @@ CommandParseState ParseCommandLineOption(LPWSTR lp1, LPWSTR lp2) noexcept {
 
 void ParseCommandLine() noexcept {
 	LPWSTR lpCmdLine = GetCommandLine();
-	const size_t cmdSize = sizeof(WCHAR) * (lstrlen(lpCmdLine) + 1);
-
-	if (cmdSize == sizeof(WCHAR)) {
+	size_t cmdSize = lstrlen(lpCmdLine);
+	if (cmdSize == 0) {
 		return;
 	}
 
 #if 0
 	FILE *fp = fopen("args-dump.txt", "wb");
 	fwrite("\xFF\xFE", 1, 2, fp);
-	fwrite(lpCmdLine, 1, cmdSize - sizeof(WCHAR), fp);
+	fwrite(lpCmdLine, 1, cmdSize * sizeof(WCHAR), fp);
 	fclose(fp);
 #endif
 
 	// Good old console can also send args separated by Tabs
 	StrTab2Space(lpCmdLine);
 
-	LPWSTR lp1 = static_cast<LPWSTR>(NP2HeapAlloc(cmdSize));
-	LPWSTR lp3 = static_cast<LPWSTR>(NP2HeapAlloc(cmdSize));
+	cmdSize = NP2_align_up(cmdSize + 1, MEMORY_ALLOCATION_ALIGNMENT);
+	WCHAR * const lp1 = static_cast<LPWSTR>(NP2HeapAlloc(cmdSize * sizeof(WCHAR) * 3));
+	WCHAR * const lp2 = lp1 + cmdSize;
+	WCHAR * const lp3 = lp2 + cmdSize;
 
 	// Start with 2nd argument
 	if (!(ExtractFirstArgument(lpCmdLine, lp1, lp3) && *lp3)) {
 		NP2HeapFree(lp1);
-		NP2HeapFree(lp3);
 		return;
 	}
 
-	LPWSTR lp2 = static_cast<LPWSTR>(NP2HeapAlloc(cmdSize));
 	while (ExtractFirstArgument(lp3, lp1, lp2)) {
 		// options
 		if (*lp1 == L'/' || *lp1 == L'-') {
@@ -2946,9 +2946,7 @@ void ParseCommandLine() noexcept {
 		}
 	}
 
-	NP2HeapFree(lp2);
 	NP2HeapFree(lp1);
-	NP2HeapFree(lp3);
 }
 
 //=============================================================================
