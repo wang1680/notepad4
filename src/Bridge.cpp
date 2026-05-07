@@ -1502,7 +1502,7 @@ void EditCalculateExpr(int menu) {
 	HRESULT hr = CoCreateInstance(CLSID_Chakra, nullptr, CLSCTX_INPROC_SERVER, IID_IActiveScript, AsPPVArgs(&activeScript));
 	if (!SUCCEEDED(hr)) {
 #if 0
-		// JScript9 or JScript9Legacy is just secure version of JScript, no ES6 support
+		// JScript9 or JScript9Legacy is just optimized and secure version of JScript, no ES6 support
 		hr = CoCreateInstance(CLSID_JScript, nullptr, CLSCTX_INPROC_SERVER, IID_IActiveScript, AsPPVArgs(&activeScript));
 #else
 		CLSID clsidScript;
@@ -1553,6 +1553,18 @@ void EditCalculateExpr(int menu) {
 				}
 				hr = scriptParse->ParseScriptText(pszBuf, nullptr, nullptr, nullptr, 0, 0, SCRIPTTEXT_ISEXPRESSION, &result, nullptr);
 				if (SUCCEEDED(hr)) {
+					if (result.vt == VT_DISPATCH) { // call result object's toString() method
+						IDispatch * const dispatch = result.pdispVal;
+						LPWSTR toString = const_cast<LPWSTR>(L"toString");
+						DISPID dispId;
+						hr = dispatch->GetIDsOfNames(IID_NULL, &toString, 1, LOCALE_USER_DEFAULT, &dispId);
+						if (SUCCEEDED(hr)) {
+							DISPPARAMS params{};
+							hr = dispatch->Invoke(dispId, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &params, &result, nullptr, nullptr);
+							if (!SUCCEEDED(hr)) {}
+						}
+					}
+
 					pszTextW[0] = L'\0';
 					iSelCount = iSelCount*2 + padding;
 					hr = pfnVariantToString(result, pszTextW, static_cast<UINT>(iSelCount));
