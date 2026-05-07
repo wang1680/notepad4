@@ -2566,13 +2566,10 @@ void LoadSettings() noexcept {
 		}
 		bNegFilter = section.GetBool(L"NegativeFilter", false);
 	} else { // ignore filter if /m was specified
-		if (*lpFilterArg == L'-') {
-			bNegFilter = true;
-			lstrcpyn(tchFilter, lpFilterArg + 1, COUNTOF(tchFilter));
-		} else {
-			bNegFilter = false;
-			lstrcpyn(tchFilter, lpFilterArg, COUNTOF(tchFilter));
-		}
+		bNegFilter = *lpFilterArg == L'-';
+		lstrcpyn(tchFilter, lpFilterArg + static_cast<uint8_t>(bNegFilter), COUNTOF(tchFilter));
+		NP2HeapFree(lpFilterArg);
+		lpFilterArg = nullptr;
 	}
 
 	bDefColorNoFilter = section.GetBool(L"DefColorNoFilter", true);
