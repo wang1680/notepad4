@@ -1543,7 +1543,7 @@ void EditCalculateExpr(int menu) {
 					context.lineStart = 1;
 					pszBuf += iSelCount;
 					// Use with(Math) to avoid writing it everywhere.
-					wsprintf(pszBuf, L"with(Math){eval(\n%s)}", pszTextW);
+					wsprintf(pszBuf, L"with(Math){\n%s}", pszTextW);
 					// regex replace() to support pow operator ^
 					/*wsprintf(pszBuf,
 						L"(function(s){"
