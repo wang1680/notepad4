@@ -1737,6 +1737,15 @@ def parse_kotlin_api_file(path):
 		('KDoc', keywordMap['kdoc'], KeywordAttr.NoLexer | KeywordAttr.NoAutoComp | KeywordAttr.Special),
 	]
 
+def parse_latex_api_file(path):
+	doc = read_file(path)
+	commands = re.findall(r'\\(\w+)', doc)
+	misc = []
+	return [
+		('commands', commands, KeywordAttr.NoLexer | KeywordAttr.Special),
+		('misc', misc, KeywordAttr.NoLexer)
+	]
+
 def parse_lua_api_file(path):
 	sections = read_api_file(path, '--')
 	keywordMap = {}

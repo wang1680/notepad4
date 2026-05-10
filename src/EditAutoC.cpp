@@ -723,6 +723,7 @@ enum {
 	JuliaKeywordIndex_Macro = 6,
 	KotlinKeywordIndex_Annotation = 6,
 	KotlinKeywordIndex_KDoc = 8,
+	LaTeXKeywordIndex_Command = 0,
 	NSISKeywordIndex_PredefinedVariable = 5,
 	PHPKeywordIndex_PredefinedVariable = 4,
 	PHPKeywordIndex_Phpdoc = 12,
@@ -1321,8 +1322,8 @@ static AddWordResult AutoC_AddSpecWord(WordList &pWList, int iCurrentStyle, int 
 			if (!autoCompletionConfig.bLaTeXInputMethod) {
 				pWList.AddListEx(LaTeXInputSequenceString);
 			}
-			if (ch == '\\' && rid == NP2LEX_TEXINFO) {
-				pWList.AddList(pLex->pKeyWords->pszKeyWords[TexinfoKeywordIndex_TeXCommand]);
+			if (ch == '\\') {
+				pWList.AddList(pLex->pKeyWords->pszKeyWords[(rid == NP2LEX_LATEX) ? LaTeXKeywordIndex_Command : TexinfoKeywordIndex_TeXCommand]);
 			}
 			return AddWordResult_IgnoreLexer;
 		}
@@ -3190,6 +3191,7 @@ void InitAutoCompletionCache(LPCEDITLEXER pLex) noexcept {
 		PlainTextStyleMask[SCE_L_DEFAULT >> 5] |= (1U << (SCE_L_DEFAULT & 31));
 		PlainTextStyleMask[SCE_L_VERBATIM2 >> 5] |= (1U << (SCE_L_VERBATIM2 & 31));
 		PlainTextStyleMask[SCE_L_VERBATIM >> 5] |= (1U << (SCE_L_VERBATIM & 31));
+		PlainTextStyleMask[SCE_L_TITLE_TOC >> 5] |= (1U << (SCE_L_TITLE_TOC & 31));
 		PlainTextStyleMask[SCE_L_TITLE >> 5] |= (1U << (SCE_L_TITLE & 31));
 		PlainTextStyleMask[SCE_L_CHAPTER >> 5] |= (1U << (SCE_L_CHAPTER & 31));
 		PlainTextStyleMask[SCE_L_SECTION >> 5] |= (1U << (SCE_L_SECTION & 31));
@@ -3432,6 +3434,12 @@ void InitAutoCompletionCache(LPCEDITLEXER pLex) noexcept {
 	case NP2LEX_TYPST:
 		CurrentWordCharSet['-' >> 5] |= (1 << ('-' & 31));
 		PlainTextStyleMask[SCE_TYPST_DEFAULT >> 5] |= (1U << (SCE_TYPST_DEFAULT & 31));
+		PlainTextStyleMask[SCE_TYPST_HEADER1 >> 5] |= (1U << (SCE_TYPST_HEADER1 & 31));
+		PlainTextStyleMask[SCE_TYPST_HEADER2 >> 5] |= (1U << (SCE_TYPST_HEADER2 & 31));
+		PlainTextStyleMask[SCE_TYPST_HEADER3 >> 5] |= (1U << (SCE_TYPST_HEADER3 & 31));
+		PlainTextStyleMask[SCE_TYPST_HEADER4 >> 5] |= (1U << (SCE_TYPST_HEADER4 & 31));
+		PlainTextStyleMask[SCE_TYPST_HEADER5 >> 5] |= (1U << (SCE_TYPST_HEADER5 & 31));
+		PlainTextStyleMask[SCE_TYPST_HEADER6 >> 5] |= (1U << (SCE_TYPST_HEADER6 & 31));
 		break;
 
 	case NP2LEX_VERILOG:

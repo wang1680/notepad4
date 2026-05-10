@@ -392,17 +392,27 @@ Kotlin
 LaTeX File
 	tex
 	latex
-	sty
+	sty				LaTeX Macro package
 	cls				LaTeX Document Class File
-	tpx
-	bbl
-	bib
+	tpx				drawing tool for TeX，https://github.com/krystophny/tpx
+	bbl				Bibliography
+	bib				Bibliography
+	bst				Bibliography Style
 	ltx
-	dtx
-	ins
-	toc
+	dtx				Documented TeX
+	ins				Installer file for dtx
 	info
-	rd				R documentation
+	isty				makeindex
+	fd				Font description file
+	rd				R documentation, https://cran.r-project.org/doc/manuals/R-exts.html#Writing-R-documentation-files
+
+	Output files:
+	aux				Auxiliary information
+	toc				Table of Contents
+	lof				list of figures
+	lot				list of tables
+	idx				makeindex
+	ind				processed .idx file
 
 Lisp Script
 	lisp

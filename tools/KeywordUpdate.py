@@ -59,7 +59,7 @@ lexerList = [
 	('NP2LEX_JSON', 'stlJSON.cpp', 'LexJSON.cxx', '', 0, parse_json_api_file),
 	('NP2LEX_JULIA', 'stlJulia.cpp', 'LexJulia.cxx', 'Julia.jl', 0, parse_julia_api_file),
 
-	('NP2LEX_LATEX', 'stlLaTeX.cpp', 'LexLaTeX.cxx', '', 0, None),
+	('NP2LEX_LATEX', 'stlLaTeX.cpp', 'LexLaTeX.cxx', 'LaTeX.tex', 0, parse_latex_api_file),
 	('NP2LEX_LISP', 'stlLisp.cpp', 'LexLisp.cxx', '', 0, None),
 	('NP2LEX_LLVM', 'stlLLVM.cpp', 'LexLLVM.cxx', 'LLVM.ll', 0, parse_llvm_api_file),
 	('NP2LEX_LUA', 'stlLua.cpp', 'LexLua.cxx', 'Lua.lua', 0, parse_lua_api_file),

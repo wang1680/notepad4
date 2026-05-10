@@ -90,7 +90,7 @@ Latest development builds (artifacts in Release configuration for each compiler 
 	* [JSON](https://www.json.org) and [JSON5](https://json5.org/) Document
 	* [Julia Script](tools/lang/Julia.jl), up to Julia 1.9. [Screenshots](https://github.com/zufuliu/notepad4/wiki/Screenshots#julia)
 	* [Kotlin](tools/lang/Kotlin.kt), up to Kotlin 2.3.
-	* LaTeX
+	* [LaTeX](tools/lang/LaTeX.tex)
 	* Lisp Script (Common Lisp, Clojure, Scheme, etc.)
 	* [LLVM IR](tools/lang/LLVM.ll), up to LLVM 21.
 		* [MLIR](tools/lang/MLIR.mlir)
