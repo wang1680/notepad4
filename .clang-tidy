@@ -65,6 +65,7 @@ Checks: [
     # -bugprone-reserved-identifier,
     # -bugprone-standalone-empty,
     # -misc-const-correctness,
+    # -misc-explicit-constructor,
     ]
 
 WarningsAsErrors: ''
