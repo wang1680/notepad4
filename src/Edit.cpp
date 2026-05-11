@@ -318,7 +318,7 @@ char* EditGetClipboardText(HWND hwnd) noexcept {
 	LPCWSTR pwch = static_cast<LPCWSTR>(GlobalLock(hmem));
 
 	const UINT cpEdit = SciCall_GetCodePage();
-	const int mlen = WideCharToMultiByte(cpEdit, 0, pwch, -1, nullptr, 0, nullptr, nullptr);
+	const UINT mlen = WideCharToMultiByte(cpEdit, 0, pwch, -1, nullptr, 0, nullptr, nullptr);
 	char *pmch = static_cast<char *>(LocalAlloc(LPTR, mlen*2));
 	char *ptmp = static_cast<char *>(NP2HeapAlloc(mlen));
 
@@ -367,7 +367,7 @@ LPWSTR EditGetClipboardTextW() noexcept {
 
 	HANDLE hmem = GetClipboardData(CF_UNICODETEXT);
 	LPCWSTR pwch = static_cast<LPCWSTR>(GlobalLock(hmem));
-	const int wlen = lstrlen(pwch);
+	const UINT wlen = lstrlen(pwch);
 	LPWSTR ptmp = static_cast<LPWSTR>(NP2HeapAlloc((2*wlen + 1)*sizeof(WCHAR)));
 
 	if (pwch && ptmp) {
@@ -417,45 +417,44 @@ void EditCopyAppend(HWND hwnd) noexcept {
 	}
 
 	char *pszText;
+	size_t cchText;
 	if (!SciCall_IsSelectionEmpty()) {
 		if (SciCall_IsRectangularSelection()) {
 			NotifyRectangularSelection();
 			return;
 		}
 
-		const Sci_Position iSelCount = SciCall_GetSelTextLength();
-		pszText = static_cast<char *>(NP2HeapAlloc(iSelCount + 1));
+		cchText = SciCall_GetSelTextLength();
+		pszText = static_cast<char *>(NP2HeapAlloc(cchText + 1));
 		SciCall_GetSelText(pszText);
 	} else {
-		const Sci_Position cchText = SciCall_GetLength();
+		cchText = SciCall_GetLength();
 		pszText = static_cast<char *>(NP2HeapAlloc(cchText + 1));
 		SciCall_GetText(cchText, pszText);
 	}
 
 	const UINT cpEdit = SciCall_GetCodePage();
-	const int cchTextW = MultiByteToWideChar(cpEdit, 0, pszText, -1, nullptr, 0);
+	cchText += 1;
+	WCHAR *pszTextW = static_cast<WCHAR *>(NP2HeapAlloc(sizeof(WCHAR)*cchText));
+	UINT cchTextW = MultiByteToWideChar(cpEdit, 0, pszText, -1, pszTextW, static_cast<int>(cchText));
 
-	WCHAR *pszTextW = nullptr;
-	if (cchTextW != 0) {
-		pszTextW = static_cast<WCHAR *>(NP2HeapAlloc(sizeof(WCHAR) * (CSTRLEN(L"\r\n\r\n") + cchTextW + 2)));
-		pszText[0] = L'\r';
-		pszText[1] = L'\n';
-		pszText[2] = L'\r';
-		pszText[3] = L'\n';
-		MultiByteToWideChar(cpEdit, 0, pszText, -1, pszTextW + 4, cchTextW + 2);
-	}
-
-	NP2HeapFree(pszText);
-	if (OpenClipboard(GetParent(hwnd))) {
+	if (cchTextW > 1 && OpenClipboard(GetParent(hwnd))) {
 		HANDLE hOld = GetClipboardData(CF_UNICODETEXT);
 		LPCWSTR pszOld = static_cast<LPCWSTR>(GlobalLock(hOld));
 
-		HANDLE hNew = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT,
-						   sizeof(WCHAR) * (lstrlen(pszOld) + lstrlen(pszTextW) + 1));
+		cchText = sizeof(WCHAR)*cchTextW;
+		cchTextW = lstrlen(pszOld);
+		const size_t size = sizeof(WCHAR)*cchTextW;
+		HANDLE hNew = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, size + 4*sizeof(WCHAR) + cchText);
 		WCHAR *pszNew = static_cast<WCHAR *>(GlobalLock(hNew));
 
-		lstrcpy(pszNew, pszOld);
-		lstrcat(pszNew, pszTextW);
+		memcpy(pszNew, pszOld, size);
+		pszNew += cchTextW;
+		pszNew[0] = L'\r';
+		pszNew[1] = L'\n';
+		pszNew[2] = L'\r';
+		pszNew[3] = L'\n';
+		memcpy(pszNew + 4, pszTextW, cchText);
 
 		GlobalUnlock(hOld);
 		GlobalUnlock(hNew);
@@ -464,9 +463,9 @@ void EditCopyAppend(HWND hwnd) noexcept {
 		SetClipboardData(CF_UNICODETEXT, hNew);
 		CloseClipboard();
 	}
-	if (pszTextW != nullptr) {
-		NP2HeapFree(pszTextW);
-	}
+
+	NP2HeapFree(pszText);
+	NP2HeapFree(pszTextW);
 }
 
 //=============================================================================

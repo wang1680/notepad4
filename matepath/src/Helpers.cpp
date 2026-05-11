@@ -1006,10 +1006,11 @@ void DeleteBitmapButton(HWND hwnd, int nCtlId) noexcept {
 //
 void SetClipData(HWND hwnd, LPCWSTR pszData) noexcept {
 	if (OpenClipboard(hwnd)) {
-		EmptyClipboard();
-		HANDLE hData = GlobalAlloc(GHND, sizeof(WCHAR) * (lstrlen(pszData) + 1));
+		const size_t size = sizeof(WCHAR) * (lstrlen(pszData) + 1U);
+		HANDLE hData = GlobalAlloc(GHND, size);
 		WCHAR *pData = static_cast<WCHAR *>(GlobalLock(hData));
-		lstrcpyn(pData, pszData, static_cast<int>(GlobalSize(hData) / sizeof(WCHAR)));
+		memcpy(pData, pszData, size);
+		EmptyClipboard();
 		GlobalUnlock(hData);
 		SetClipboardData(CF_UNICODETEXT, hData);
 		CloseClipboard();

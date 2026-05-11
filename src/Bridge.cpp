@@ -1310,16 +1310,13 @@ void EditFormatCode(int menu) noexcept {
 			// code from SciTEWin::CopyAsRTF()
 			SaveToStreamRTF(output, styledText.get(), textLength, startPos, endPos);
 			//printf("%s:\n%s\n", __func__, output.c_str());
-			const size_t len = output.length() + 1; // +1 for NUL
-			HGLOBAL handle = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, len);
-			if (handle) {
-				::OpenClipboard(hwndMain);
-				::EmptyClipboard();
+			if (::OpenClipboard(hwndMain)) {
+				const size_t len = output.length() + 1; // +1 for NUL
+				HGLOBAL handle = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, len);
 				char *ptr = static_cast<char *>(::GlobalLock(handle));
-				if (ptr) {
-					memcpy(ptr, output.c_str(), len);
-					::GlobalUnlock(handle);
-				}
+				memcpy(ptr, output.c_str(), len);
+				::GlobalUnlock(handle);
+				::EmptyClipboard();
 				::SetClipboardData(::RegisterClipboardFormat(CF_RTF), handle);
 				::CloseClipboard();
 			}
