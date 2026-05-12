@@ -425,17 +425,19 @@ void EditCopyAppend(HWND hwnd) noexcept {
 		}
 
 		cchText = SciCall_GetSelTextLength();
-		pszText = static_cast<char *>(NP2HeapAlloc(cchText + 1));
+		cchText = NP2_align_up(cchText + 1, MEMORY_ALLOCATION_ALIGNMENT);
+		pszText = static_cast<char *>(NP2HeapAlloc(cchText * (sizeof(char) + sizeof(WCHAR))));
 		SciCall_GetSelText(pszText);
 	} else {
 		cchText = SciCall_GetLength();
-		pszText = static_cast<char *>(NP2HeapAlloc(cchText + 1));
+		const size_t allocSize = NP2_align_up(cchText + 1, MEMORY_ALLOCATION_ALIGNMENT);
+		pszText = static_cast<char *>(NP2HeapAlloc(allocSize * (sizeof(char) + sizeof(WCHAR))));
 		SciCall_GetText(cchText, pszText);
+		cchText = allocSize;
 	}
 
 	const UINT cpEdit = SciCall_GetCodePage();
-	cchText += 1;
-	WCHAR *pszTextW = static_cast<WCHAR *>(NP2HeapAlloc(sizeof(WCHAR)*cchText));
+	WCHAR * const pszTextW = reinterpret_cast<WCHAR *>(pszText + cchText);
 	UINT cchTextW = MultiByteToWideChar(cpEdit, 0, pszText, -1, pszTextW, static_cast<int>(cchText));
 
 	if (cchTextW > 1 && OpenClipboard(GetParent(hwnd))) {
@@ -465,7 +467,6 @@ void EditCopyAppend(HWND hwnd) noexcept {
 	}
 
 	NP2HeapFree(pszText);
-	NP2HeapFree(pszTextW);
 }
 
 //=============================================================================

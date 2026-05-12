@@ -7520,9 +7520,8 @@ bool ActivatePrevInst() noexcept {
 //
 bool RelaunchMultiInst() noexcept {
 	if (flagMultiFileArg == TripleBoolean_True && cFileList > 1) {
-		LPWSTR lpCmdLineNew = StrDup(GetCommandLine());
-		const size_t cmdSize = sizeof(WCHAR) * (lstrlen(lpCmdLineNew) + 1);
-		LPWSTR lp1 = static_cast<LPWSTR>(NP2HeapAlloc(cmdSize));
+		const LPCWSTR lpCmdLine = GetCommandLine();
+		LPWSTR lpCmdLineNew = StrDup(lpCmdLine);
 
 		StrTab2Space(lpCmdLineNew);
 		StrCpyEx(lpCmdLineNew + cchiFileList, L"");
@@ -7555,7 +7554,6 @@ bool RelaunchMultiInst() noexcept {
 		}
 
 		LocalFree(lpCmdLineNew);
-		NP2HeapFree(lp1);
 		NP2HeapFree(lpFileArg);
 
 		return true;
