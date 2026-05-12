@@ -270,7 +270,7 @@ BigInt(value) {
 }
 
 Math {
-	E
+	// E
 	LN10
 	LN2
 	LOG10E
