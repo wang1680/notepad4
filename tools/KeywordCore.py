@@ -81,7 +81,9 @@ def BuildKeywordContent(rid, lexer, keywordList, keywordCount=16):
 			items = set(items)
 			for item in items: # check ASCII graphic character
 				if any(c <= ' ' or c > '~' for c in item):
-					print(rid, item)
+					print(f'{rid} {comment}: {item}')
+				# if len(item) <= 1:
+				# 	print(f'{rid} {comment}: {item}')
 			makeLower = False
 			if attr & KeywordAttr.MakeLower:
 				lowercase = to_lower(items)
@@ -91,7 +93,7 @@ def BuildKeywordContent(rid, lexer, keywordList, keywordCount=16):
 				else:
 					if len(items) != len(unique):
 						duplicate = find_duplicate_lower(items)
-						print(rid, comment, 'duplicate words:', duplicate)
+						print(f'{rid} {comment} duplicate words: {duplicate}')
 					makeLower = True
 					items = [item[1] for item in sorted(zip(lowercase, items, strict=True))]
 			if not makeLower:
@@ -102,7 +104,7 @@ def BuildKeywordContent(rid, lexer, keywordList, keywordCount=16):
 		if lines:
 			length = len(lines) + sum(len(line) for line in lines)
 			if length >= 0xffff:
-				print(rid, comment, 'string exceeds 64 KiB:', length)
+				print(f'{rid} {comment} string exceeds 64 KiB: {length}')
 			if attr & KeywordAttr.PrefixSpace:
 				attr &= ~KeywordAttr.PrefixSpace
 				lines[0] = ' ' + lines[0]
