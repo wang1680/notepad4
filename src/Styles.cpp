@@ -772,9 +772,8 @@ void Style_Load() noexcept {
 	if (g_AllFileExtensions == nullptr) {
 		g_AllFileExtensions = static_cast<LPWSTR>(NP2HeapAlloc(ALL_FILE_EXTENSIONS_BYTE_SIZE));
 	}
-	WCHAR *pIniSectionBuf = static_cast<WCHAR *>(NP2HeapAlloc(sizeof(WCHAR) * MAX_INI_SECTION_SIZE_STYLES));
 	constexpr DWORD cchIniSection = MAX_INI_SECTION_SIZE_STYLES;
-	section.Init(128);
+	WCHAR * const pIniSectionBuf = section.Init(128, cchIniSection);
 
 	LoadIniSection(INI_SECTION_NAME_STYLES, pIniSectionBuf, cchIniSection);
 	section.Parse(pIniSectionBuf);
@@ -821,24 +820,20 @@ void Style_Load() noexcept {
 	FindSystemDefaultTextFont();
 
 	section.Free();
-	NP2HeapFree(pIniSectionBuf);
 }
 
 static void Style_LoadOne(PEDITLEXER pLex) noexcept {
 	IniSectionParser section;
-	WCHAR *pIniSectionBuf = static_cast<WCHAR *>(NP2HeapAlloc(sizeof(WCHAR) * MAX_INI_SECTION_SIZE_STYLES));
 	constexpr DWORD cchIniSection = MAX_INI_SECTION_SIZE_STYLES;
-	section.Init(128);
+	WCHAR * const pIniSectionBuf = section.Init(128, cchIniSection);
 	Style_LoadOneEx(pLex, section, pIniSectionBuf, cchIniSection);
 	section.Free();
-	NP2HeapFree(pIniSectionBuf);
 }
 
 void Style_LoadAll(StyleLoadFlag loadFlag) noexcept {
 	IniSectionParser section;
-	WCHAR *pIniSectionBuf = static_cast<WCHAR *>(NP2HeapAlloc(sizeof(WCHAR) * MAX_INI_SECTION_SIZE_STYLES));
 	constexpr DWORD cchIniSection = MAX_INI_SECTION_SIZE_STYLES;
-	section.Init(128);
+	WCHAR * const pIniSectionBuf = section.Init(128, cchIniSection);
 
 	// Custom colors
 	if (FlagSet(loadFlag, StyleLoadFlag_Reload) || !bCustomColorLoaded) {
@@ -873,7 +868,6 @@ void Style_LoadAll(StyleLoadFlag loadFlag) noexcept {
 	}
 
 	section.Free();
-	NP2HeapFree(pIniSectionBuf);
 	if (FlagSet(loadFlag, StyleLoadFlag_Apply)) {
 		Style_LoadTabSettings(pLexCurrent);
 		Style_SetLexer(pLexCurrent, false);
@@ -999,10 +993,8 @@ bool Style_Import(HWND hwnd) noexcept {
 
 	if (GetOpenFileName(&ofn)) {
 		IniSectionParser section;
-		WCHAR *pIniSectionBuf = static_cast<WCHAR *>(NP2HeapAlloc(sizeof(WCHAR) * MAX_INI_SECTION_SIZE_STYLES));
 		constexpr DWORD cchIniSection = MAX_INI_SECTION_SIZE_STYLES;
-
-		section.Init(128);
+		WCHAR * const pIniSectionBuf = section.Init(128, cchIniSection);
 		// file extensions
 		if (GetPrivateProfileSection(INI_SECTION_NAME_FILE_EXTENSIONS, pIniSectionBuf, cchIniSection, szFile)) {
 			if (section.Parse(pIniSectionBuf)) {
@@ -1040,7 +1032,6 @@ bool Style_Import(HWND hwnd) noexcept {
 		}
 
 		section.Free();
-		NP2HeapFree(pIniSectionBuf);
 		return true;
 	}
 	return false;

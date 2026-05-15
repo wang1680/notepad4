@@ -1367,9 +1367,8 @@ INT_PTR CALLBACK GetFilterDlgProc(HWND hwnd, UINT umsg, WPARAM wParam, LPARAM lP
 			HMENU hMenu = CreatePopupMenu();
 
 			IniSectionParser section;
-			WCHAR *pIniSectionBuf = static_cast<WCHAR *>(NP2HeapAlloc(sizeof(WCHAR) * MAX_INI_SECTION_SIZE_FILTERS));
 			constexpr DWORD cchIniSection = MAX_INI_SECTION_SIZE_FILTERS;
-			section.Init(128);
+			WCHAR * const pIniSectionBuf = section.Init(128, cchIniSection);
 
 			LoadIniSection(INI_SECTION_NAME_FILTERS, pIniSectionBuf, cchIniSection);
 			section.ParseArray(pIniSectionBuf);
@@ -1379,7 +1378,7 @@ INT_PTR CALLBACK GetFilterDlgProc(HWND hwnd, UINT umsg, WPARAM wParam, LPARAM lP
 			for (UINT i = 0; i < section.count; i++, dwIndex++) {
 				const IniKeyValueNode &node = section.nodeList[i];
 				LPCWSTR pszFilterValue = node.value;
-				if (*pszFilterValue) {
+				if (StrNotEmpty(pszFilterValue)) {
 					AppendMenu(hMenu, MF_ENABLED | MF_STRING, 1234 + dwIndex, node.key);
 					// Find description for current filter
 					const bool negFilter = IsButtonChecked(hwnd, IDC_NEGFILTER);
@@ -1389,7 +1388,6 @@ INT_PTR CALLBACK GetFilterDlgProc(HWND hwnd, UINT umsg, WPARAM wParam, LPARAM lP
 				}
 			}
 			section.Free();
-			NP2HeapFree(pIniSectionBuf);
 
 			if (dwCheck != 0xFFFF) { // check description for current filter
 				CheckMenuRadioItem(hMenu, 0, dwIndex, dwCheck, MF_BYPOSITION);

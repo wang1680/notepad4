@@ -535,7 +535,7 @@ struct IniSectionParser {
 #endif
 	IniKeyValueNode *nodeList;
 
-	void Init(UINT capacity_) noexcept;
+	LPWSTR Init(UINT capacity_, DWORD cchIniSection) noexcept;
 	void Free() const noexcept {
 		NP2HeapFree(nodeList);
 	}

@@ -1902,10 +1902,9 @@ void CreateBars(HWND hwnd, HINSTANCE hInstance) noexcept {
 #if NP2_ENABLE_CUSTOMIZE_TOOLBAR_LABELS
 	// Load toolbar labels
 	IniSectionParser section;
-	WCHAR *pIniSectionBuf = static_cast<WCHAR *>(NP2HeapAlloc(sizeof(WCHAR) * MAX_INI_SECTION_SIZE_TOOLBAR_LABELS));
 	constexpr DWORD cchIniSection = MAX_INI_SECTION_SIZE_TOOLBAR_LABELS;
 
-	section.Init(COUNTOF(tbbMainWnd));
+	WCHAR * const pIniSectionBuf = section.Init(COUNTOF(tbbMainWnd), cchIniSection);
 	LoadIniSection(INI_SECTION_NAME_TOOLBAR_LABELS, pIniSectionBuf, cchIniSection);
 	section.ParseArray(pIniSectionBuf, FALSE);
 
@@ -1926,7 +1925,6 @@ void CreateBars(HWND hwnd, HINSTANCE hInstance) noexcept {
 	}
 
 	section.Free();
-	NP2HeapFree(pIniSectionBuf);
 #endif // NP2_ENABLE_CUSTOMIZE_TOOLBAR_LABELS
 
 	SendMessage(hwndToolbar, TB_SETEXTENDEDSTYLE, 0,
@@ -5085,9 +5083,8 @@ static void GetWindowPositionSectionName(HMONITOR hMonitor, WCHAR (&sectionName)
 //
 void LoadSettings() noexcept {
 	IniSectionParser section;
-	WCHAR *pIniSectionBuf = static_cast<WCHAR *>(NP2HeapAlloc(sizeof(WCHAR) * MAX_INI_SECTION_SIZE_SETTINGS));
 	constexpr DWORD cchIniSection = MAX_INI_SECTION_SIZE_SETTINGS;
-	section.Init(128);
+	WCHAR * const pIniSectionBuf= section.Init(128, cchIniSection);
 
 	LoadIniSection(INI_SECTION_NAME_SETTINGS, pIniSectionBuf, cchIniSection);
 	section.Parse(pIniSectionBuf);
@@ -5362,7 +5359,6 @@ void LoadSettings() noexcept {
 	}
 
 	section.Free();
-	NP2HeapFree(pIniSectionBuf);
 
 	// Scintilla Styles
 	Style_Load();
@@ -6240,9 +6236,8 @@ void ParseCommandLine() noexcept {
 //
 void LoadFlags() noexcept {
 	IniSectionParser section;
-	WCHAR *pIniSectionBuf = static_cast<WCHAR *>(NP2HeapAlloc(sizeof(WCHAR) * MAX_INI_SECTION_SIZE_FLAGS));
 	constexpr DWORD cchIniSection = MAX_INI_SECTION_SIZE_FLAGS;
-	section.Init(64);
+	WCHAR * const pIniSectionBuf = section.Init(64, cchIniSection);
 
 	LoadIniSection(INI_SECTION_NAME_FLAGS, pIniSectionBuf, cchIniSection);
 	section.Parse(pIniSectionBuf);
@@ -6319,7 +6314,6 @@ void LoadFlags() noexcept {
 	}
 
 	section.Free();
-	NP2HeapFree(pIniSectionBuf);
 }
 
 //=============================================================================

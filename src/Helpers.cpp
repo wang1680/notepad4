@@ -104,15 +104,19 @@ void IniClearAllSectionEx(LPCWSTR lpszPrefix, LPCWSTR lpszIniFile, bool bDelete)
 //
 // Manipulation of (cached) ini file sections
 //
-void IniSectionParser::Init(UINT capacity_) noexcept {
+LPWSTR IniSectionParser::Init(UINT capacity_, DWORD cchIniSection) noexcept {
 	count = 0;
 	capacity = capacity_;
 	head = nullptr;
 #if IniSectionParserUseSentinelNode
-	nodeList = static_cast<IniKeyValueNode *>(NP2HeapAlloc((capacity_ + 1) * sizeof(IniKeyValueNode)));
+	const size_t allocSize = (capacity_ + 1)*sizeof(IniKeyValueNode) + cchIniSection*sizeof(WCHAR);
+	nodeList = static_cast<IniKeyValueNode *>(NP2HeapAlloc(allocSize));
 	sentinel = &nodeList[capacity_];
+	return reinterpret_cast<LPWSTR>(sentinel + 1);
 #else
-	nodeList = static_cast<IniKeyValueNode *>(NP2HeapAlloc(capacity_ * sizeof(IniKeyValueNode)));
+	const size_t allocSize = capacity_*sizeof(IniKeyValueNode) + cchIniSection*sizeof(WCHAR);
+	nodeList = static_cast<IniKeyValueNode *>(NP2HeapAlloc(allocSize));
+	return reinterpret_cast<LPWSTR>(nodeList + capacity_);
 #endif
 }
 
@@ -2480,9 +2484,8 @@ void MRUList::Empty(bool save, bool destroy) noexcept {
 void MRUList::Load() noexcept {
 	IniSectionParser section;
 	const DWORD cchIniSection = MAX_MRU_ITEM_SIZE * capacity;
-	WCHAR *pIniSectionBuf = static_cast<WCHAR *>(NP2HeapAlloc(sizeof(WCHAR) * cchIniSection));
 
-	section.Init(capacity);
+	WCHAR * const pIniSectionBuf = section.Init(capacity, cchIniSection);
 	LoadIniSection(szRegKey, pIniSectionBuf, cchIniSection);
 	section.ParseArray(pIniSectionBuf, iFlags & MRUFlags_QuoteValue);
 	UINT n = 0;
@@ -2501,7 +2504,6 @@ void MRUList::Load() noexcept {
 
 	iSize = n;
 	section.Free();
-	NP2HeapFree(pIniSectionBuf);
 }
 
 void MRUList::Save() const noexcept {
