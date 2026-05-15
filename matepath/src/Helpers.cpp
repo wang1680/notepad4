@@ -201,13 +201,13 @@ LPCWSTR IniSectionParser::UnsafeGetValue(LPCWSTR key, int keyLen) noexcept {
 }
 
 void IniSectionParser::GetStringImpl(LPCWSTR key, int keyLen, LPCWSTR lpDefault, LPWSTR lpReturnedString, int cchReturnedString) noexcept {
-	LPCWSTR value = GetValueImpl(key, keyLen);
+	LPCWSTR value = count ? UnsafeGetValue(key, keyLen) : nullptr;
 	// allow empty string value
 	lstrcpyn(lpReturnedString, ((value == nullptr) ? lpDefault : value), cchReturnedString);
 }
 
 int IniSectionParser::GetIntImpl(LPCWSTR key, int keyLen, int iDefault) noexcept {
-	LPCWSTR value = GetValueImpl(key, keyLen);
+	LPCWSTR value = count ? UnsafeGetValue(key, keyLen) : nullptr;
 	if (value && CRTStrToInt(value, &keyLen)) {
 		return keyLen;
 	}
@@ -215,7 +215,7 @@ int IniSectionParser::GetIntImpl(LPCWSTR key, int keyLen, int iDefault) noexcept
 }
 
 bool IniSectionParser::GetBoolImpl(LPCWSTR key, int keyLen, bool bDefault) noexcept {
-	LPCWSTR value = GetValueImpl(key, keyLen);
+	LPCWSTR value = count ? UnsafeGetValue(key, keyLen) : nullptr;
 	if (value) {
 		const UINT t = *value - L'0';
 		if (t <= TRUE) {
@@ -233,6 +233,18 @@ void IniSectionBuilder::SetString(LPCWSTR key, LPCWSTR value) noexcept {
 	p = StrEnd(p) + 1;
 	*p = L'\0';
 	next = p;
+}
+
+void IniSectionBuilder::SetInt(LPCWSTR key, int i) noexcept {
+	WCHAR tch[16];
+	_ltow(i, tch, 10);
+	SetString(key, tch);
+}
+
+void IniSectionBuilder::SetStringEx(LPCWSTR key, LPCWSTR value, LPCWSTR lpDefault) noexcept {
+	if (!StrCaseEqual(value, lpDefault)) {
+		SetString(key, value);
+	}
 }
 
 LPWSTR Registry_GetString(HKEY hKey, LPCWSTR valueName) noexcept {
@@ -1004,6 +1016,7 @@ void DeleteBitmapButton(HWND hwnd, int nCtlId) noexcept {
 //
 // SetClipData()
 //
+NP2_noinline
 void SetClipData(HWND hwnd, LPCWSTR pszData) noexcept {
 	if (OpenClipboard(hwnd)) {
 		const size_t size = sizeof(WCHAR) * (lstrlen(pszData) + 1U);

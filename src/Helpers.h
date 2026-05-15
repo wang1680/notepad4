@@ -575,19 +575,11 @@ struct IniSectionBuilder {
 	LPWSTR next;
 	void SetString(LPCWSTR key, LPCWSTR value) noexcept;
 	void SetQuotedString(LPCWSTR key, LPCWSTR value) noexcept;
-	void SetInt(LPCWSTR key, int i) noexcept {
-		WCHAR tch[16];
-		_ltow(i, tch, 10);
-		SetString(key, tch);
-	}
+	void SetInt(LPCWSTR key, int i) noexcept;
 	void SetBool(LPCWSTR key, bool b) noexcept {
 		SetString(key, (b ? L"1" : L"0"));
 	}
-	void SetStringEx(LPCWSTR key, LPCWSTR value, LPCWSTR lpDefault) noexcept {
-		if (!StrCaseEqual(value, lpDefault)) {
-			SetString(key, value);
-		}
-	}
+	void SetStringEx(LPCWSTR key, LPCWSTR value, LPCWSTR lpDefault) noexcept;
 	void SetIntEx(LPCWSTR key, int i, int iDefault) noexcept {
 		if (i != iDefault) {
 			SetInt(key, i);
