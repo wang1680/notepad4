@@ -64,6 +64,7 @@ Checks: [
     # -bugprone-forward-declaration-namespace,
     # -bugprone-reserved-identifier,
     # -bugprone-standalone-empty,
+    # -bugprone-unhandled-code-paths,
     # -misc-const-correctness,
     # -misc-explicit-constructor,
     ]

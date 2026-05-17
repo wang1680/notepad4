@@ -1499,7 +1499,7 @@ void EditCalculateExpr(int menu) {
 	HRESULT hr = CoCreateInstance(CLSID_Chakra, nullptr, CLSCTX_INPROC_SERVER, IID_IActiveScript, AsPPVArgs(&activeScript));
 	if (!SUCCEEDED(hr)) {
 #if 0
-		// JScript9 or JScript9Legacy is just optimized and secure version of JScript, no ES6 support
+		// JScript9 or JScript9Legacy is just improved and secure version of JScript, no ES6 support
 		hr = CoCreateInstance(CLSID_JScript, nullptr, CLSCTX_INPROC_SERVER, IID_IActiveScript, AsPPVArgs(&activeScript));
 #else
 		CLSID clsidScript;
